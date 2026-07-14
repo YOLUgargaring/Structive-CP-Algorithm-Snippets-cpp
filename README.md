@@ -8,6 +8,9 @@
 - [懒标记线段树](./src/数据结构/懒标记线段树.cpp)
 - [ST表](./src/数据结构/ST表.cpp)
 - [01异或字典树](./src/数据结构/01异或字典树.cpp)
+- [LCA-倍增法](./src/数据结构/LCA-倍增法.cpp)
+- [LCA-RMQ在线法](./src/数据结构/LCA-RMQ在线法.cpp)
+- [LCA-Tarjan离线法](./src/数据结构/LCA-Tarjan离线法.cpp)
 
 ## [图论](./src/图论)
 - [并查集](./src/图论/并查集.cpp)
