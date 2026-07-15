@@ -33,54 +33,58 @@
 
 using namespace std;
 
-int sz;
-struct Matrix{
+class Matrix{
+public:
     const static int N=110;
     int a[N][N];
-    Matrix(){
+    int sz;
+
+    Matrix(int n):sz(n){
         memset(a,0,sizeof(a));
     }
+
     Matrix operator*(const Matrix &b)const{
-        Matrix res;
-        for(int i=1;i<=sz;i++){
-            for(int k=1;k<=sz;k++){
+        int n=b.sz;
+        Matrix res(n);
+        for(int i=1;i<=n;i++){
+            for(int k=1;k<=n;k++){
                 if(a[i][k]==0) continue;
-                for(int j=1;j<=sz;j++){
+                for(int j=1;j<=n;j++){
                     res.a[i][j]=(res.a[i][j]+a[i][k]*b.a[k][j])%mod;
                 }
             }
         }
         return res;
     }//矩阵乘法核心
-};
 
-Matrix I(){
-    Matrix res;
-    for(int i=1;i<=sz;i++){
-        res.a[i][i]=1;
-    }
-    return res;
-}//单位矩阵初始化
-
-Matrix qpow(Matrix base,int b){
-    Matrix ans=I();
-    while(b){
-        if(b&1){
-            ans=ans*base;
+    Matrix I(Matrix base){
+        int n=base.sz;
+        Matrix res(n);
+        for(int i=1;i<=n;i++){
+            res.a[i][i]=1;
         }
-        base=base*base;
+        return res;
+    }//单位矩阵初始化
 
-        b>>=1;
-    }
-    return ans;
-}//矩阵快速幂
+    Matrix qpow(Matrix base,int b){
+        Matrix ans=I(base);
+        while(b){
+            if(b&1){
+                ans=ans*base;
+            }
+            base=base*base;
+
+            b>>=1;
+        }
+        return ans;
+    }//矩阵快速幂
+};
 
 /*=============...solving...=============*/
 void solve(){
     int n,k;
     cin>>n>>k;
-    Matrix A;
-    sz=n;
+    Matrix A(n);
     int x;
     for(int i=1;i<=n;i++){
         for(int j=1;j<=n;j++){
@@ -88,7 +92,7 @@ void solve(){
             A.a[i][j]=x;
         }
     }
-    Matrix ANS=qpow(A,k);
+    Matrix ANS=A.qpow(A,k);
     for(int i=1;i<=n;i++){
         for(int j=1;j<=n;j++) cout<<ANS.a[i][j]<<" ";
         cout<<endl;
