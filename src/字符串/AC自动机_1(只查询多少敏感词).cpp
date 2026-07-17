@@ -1,26 +1,12 @@
-/*Coding by YOLU_gargaring*/
 #include<bits/stdc++.h>
 #define int long long int
-#define db long double
-#define endl '\n'
-#define pii pair<int,int>
-#define tri tuple<int,int,int>
-#define prque priority_queue 
-#define all(x) x.begin(),x.end()
-#define MX INT_MAX
-#define MN INT_MIN
-#define E 1e-6
-#define st_it set<int>::iterator
-#define mst_it multiset<int>::iterator
-#define list_it list<int>::iterator
-#define itr ::iterator
 
 using namespace std;
 
-const int MAXN=1e3+5;
-const int z=26;
-
+//模板原题: 洛谷P3808 Link: https://www.luogu.com.cn/problem/P3808
 class ACauto {
+    const static int MAXN=1e6+5;
+    const static int z=26;
 private:
     int node[MAXN][z];
     int fail[MAXN];

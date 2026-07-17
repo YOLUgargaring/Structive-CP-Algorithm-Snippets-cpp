@@ -1,44 +1,19 @@
-/*Coding by YOLU_gargaring*/
-/* Codeforces and other OI competition version | Statu of this problem: NaN */
-/* Rating of this problem: NaN | CLIST: NaN */
-// #pragma GCC optimize("O3,unroll-loops")
-// #pragma GCC target("avx2")
 #include<bits/stdc++.h>
 #define int long long int
-#define i32 int32_t
-#define i64 int64_t
-#define i128 __int128
-#define ust unsigned short int
-#define db long double
 #define endl '\n'
-#define pii pair<int,int>
-#define tri tuple<int,int,int>
-#define fr first
-#define sc second
-#define prque priority_queue 
-#define unmap unordered_map
-#define unset unordered_set
-#define all(x) x.begin(),x.end()
-#define rep0(i,l,r) for(int i=l;i<r;i++)
-#define rep1(i,l,r) for(int i=l;i<=r;i++)
-#define irep(i,l,r) for(int i=l;i>=r;i--)
-#define range(type,name) for(auto&type:name)
-#define vecin(type,name,n) vector<type>name(n);for(auto&x:name) cin>>x
-#define vecout(name) for(auto&x:name) cout<<x<<" ";cout<<endl;
-#define coutfix(x) fixed<<setprecision(x)
-#define st_it set<int>::iterator
-#define mst_it multiset<int>::iterator
-#define list_it list<int>::iterator
-#define itr ::iterator
-#define MX INT_MAX
-#define MN INT_MIN
-#define E 1e-6
-#define BIG 1e18
-#define mod (int)(998244353)
-// #define mod (int)(1e9+7)
+// #define mod (int)(998244353)
+#define mod (int)(1e9+7)
 #define Tcase 0
 
 using namespace std;
+
+/*
+    模板原题: 此源代码的solve()解决的是 洛谷P3812
+    1.原数组子序列最大异或和: 洛谷P3812 Link: https://www.luogu.com.cn/problem/P3812
+    2.查询前缀子序列异或和结果为x的方案数: CF959F Link: https://codeforces.com/problemset/problem/959/F
+    3.区间子序列最大异或和: CF1100F Link: https://codeforces.com/problemset/problem/1100/F
+    4.原数组子序列异或和第K小: HDU3949 Link: https://vjudge.net/problem/HDU-3949
+*/
 
 struct XOR_Basis{//线性基,用最少的数字表示异或空间
     const static int H=61;
@@ -90,7 +65,7 @@ struct XOR_Basis{//线性基,用最少的数字表示异或空间
                 x^=d[i];
             }
         }
-        return true;;
+        return true;
     }
 
     void rebuild(){//重构线性基以便K-th异或查询

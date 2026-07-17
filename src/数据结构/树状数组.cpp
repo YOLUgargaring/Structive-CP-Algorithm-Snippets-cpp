@@ -1,33 +1,9 @@
-/*Coding by YOLU_gargaring*/
-/* Codeforces and other OI competition version | Statu of this problem: NaN */
-/* Rating of this problem: NaN | CLIST: NaN */
 #include<bits/stdc++.h>
 #define int long long int
-#define i32 int32_t
-#define i64 int64_t
-#define i128 __int128
-#define db long double
-#define endl '\n'
-#define pii pair<int,int>
-#define tri tuple<int,int,int>
-#define fr first
-#define sc second
-#define td third
-#define prque priority_queue 
-#define unmap unordered_map
-#define unset unordered_set
-#define all(x) x.begin(),x.end()
-#define rep(x,n,t) for(int i=x;i<n;i+=t)
-#define MX INT_MAX
-#define MN INT_MIN
-#define E 1e-6
-#define st_it set<int>::iterator
-#define mst_it multiset<int>::iterator
-#define list_it list<int>::iterator
-#define itr ::iterator
  
 using namespace std;
 
+//模板原题: 洛谷P3374 Link: https://www.luogu.com.cn/problem/P3374
 struct FwTree{
     const static int lowbit(int x){return x&(-x);}
     int n;
