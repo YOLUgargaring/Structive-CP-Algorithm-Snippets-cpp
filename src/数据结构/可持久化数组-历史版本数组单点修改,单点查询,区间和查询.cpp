@@ -4,13 +4,17 @@
 
 using namespace std;
 
-//模板原题: 洛谷P3919 Link: https://www.luogu.com.cn/problem/P3919
-class PersistentArray{//主席数组:历史版本单点修改与单点查询
+/*
+    模板原题: 此源代码的solve()解决的是洛谷P3919
+    1.历史版本数组单点修改,单点查询 洛谷P3919 Link: https://www.luogu.com.cn/problem/P3919
+    2.历史版本数组单点修改,区间和查询 ABC453G Link: https://atcoder.jp/contests/abc453/tasks/abc453_g
+*/
+class PersistentArray{//主席数组:历史版本单点修改,总体复制,单点查询,区间和查询
 private:
     struct Node{
         int left=0;//左子节点编号
         int right=0;//右子节点编号
-        int value=0;//所维护的信息，区间和/次数/最值等
+        int value=0;//叶子节点:该位置的值；内部节点(pushup后):所维护区间的和
     };
 
     int n;
@@ -36,6 +40,7 @@ private:
         int md=(l+r)>>1;
         tree[rt].left=build(a,l,md);
         tree[rt].right=build(a,md+1,r);
+        tree[rt].value=tree[tree[rt].left].value+tree[tree[rt].right].value;//pushup:区间和=左子树和+右子树和
         return rt;
     }
 
@@ -48,6 +53,7 @@ private:
         int md=(l+r)>>1;
         if(pos<=md) tree[rt].left=update(tree[pre].left,l,md,pos,value);
         else tree[rt].right=update(tree[pre].right,md+1,r,pos,value);
+        tree[rt].value=tree[tree[rt].left].value+tree[tree[rt].right].value;//pushup:更新完子树后重新汇总区间和
         return rt;
     }
 
@@ -58,6 +64,16 @@ private:
         return query(tree[rt].right,md+1,r,pos);
     }
 
+    int rangeSum(int rt,int l,int r,int ql,int qr)const{//历史区间和查询
+        if(!rt||ql>r||qr<l) return 0;//空节点或完全不相交
+        if(ql<=l&&r<=qr) return tree[rt].value;//完全覆盖,直接用pushup好的区间和
+        int md=(l+r)>>1;
+        int res=0;
+        if(ql<=md) res+=rangeSum(tree[rt].left,l,md,ql,qr);
+        if(qr>md) res+=rangeSum(tree[rt].right,md+1,r,ql,qr);
+        return res;
+    }
+
 public://对外接口区
     //主席数组构造方法,a[]为被操作的原数组(1-based),maxOperations为所操作的次数
     PersistentArray(const vector<int>&a,int maxOperations):n((int)a.size()-1){
@@ -66,7 +82,7 @@ public://对外接口区
         size_t maxNodes=2ULL*n+1ULL*maxOperations*(height+1)+5;
         tree.reserve(maxNodes);
         root.reserve(maxOperations+1);
-        tree.push_back(Node{});//0号节点留空
+        tree.push_back(Node{});//0号节点留空(同时充当区间查询里的"空节点"哨兵,value恒为0)
         root.push_back(build(a,1,n));//版本0为初始数组
     }
 
@@ -75,13 +91,17 @@ public://对外接口区
         return (int)root.size()-1;
     }
 
-    int copyFrom(int version){//复制历史版本并生成新版本
+    int copyFrom(int version){//复制历史版本并生成新版本(O(1),不新建任何树节点)
         root.push_back(root[version]);
         return (int)root.size()-1;
     }
 
     int query(int version,int pos)const{//查询数组的某个版本在位置pos的值
         return query(root[version],1,n,pos);
+    }
+
+    int queryRangeSum(int version,int l,int r)const{//查询数组的某个版本在区间[l,r]的和
+        return rangeSum(root[version],1,n,l,r);
     }
 
     int versionCount()const{return (int)root.size();}//查询版本数
