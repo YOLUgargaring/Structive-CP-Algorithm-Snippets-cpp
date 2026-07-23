@@ -21,17 +21,41 @@ private:
             cnt=0;
         }
     };
+    vector<Node*>pool;//动态节点池,clear()后复用已经申请的节点
+    int used;
     Node *root;
+
+    Node *newNode(){
+        if(used==(int)pool.size()) pool.push_back(new Node());
+        Node *node=pool[used++];
+        node->child[0]=node->child[1]=nullptr;
+        node->cnt=0;
+        return node;
+    }
     
 public:
-    XTrie() {
-        root=new Node();
+    XTrie():used(0) {
+        root=newNode();
     }
+
+    XTrie(const XTrie&)=delete;
+    XTrie& operator=(const XTrie&)=delete;
+
+    ~XTrie(){
+        for(Node *node:pool) delete node;
+    }
+
+    void clear(){//逻辑清空,保留已经申请的动态节点以便复用
+        used=0;
+        root=newNode();
+    }
+
     void insert(int x){//插入数到异或字典树
         Node *node=root;
+        node->cnt++;
         for(int i=H;i>=0;i--){
             int b=(x>>i)&1;
-            if(node->child[b]==nullptr) node->child[b]=new Node();
+            if(node->child[b]==nullptr) node->child[b]=newNode();
             node=node->child[b];
             node->cnt++;
         }
@@ -39,23 +63,45 @@ public:
 
     void erase(int x){//删除异或字典树中的一个数字(只是cnt置0,未实际删除)
         Node *node=root;
+        Node *path[H+2];
+        path[0]=node;
         for(int i=H;i>=0;i--){
             int b=(x>>i)&1;
+            if(node->child[b]==nullptr||node->child[b]->cnt==0) return;
             node=node->child[b];
-            node->cnt--;
+            path[H-i+1]=node;
         }
+        for(int i=0;i<=H+1;i++) path[i]->cnt--;
     }
 
     int queryMax(int x){//查询字典树中的数能和x异或结果的最大值
+        if(root->cnt==0) return -1;
         Node *node=root;
         int res=0;
         for(int i=H;i>=0;i--){
             int b=(x>>i)&1;
             if(node->child[b^1]&&node->child[b^1]->cnt){
-                res|=(1<<i);
+                res|=(1LL<<i);
                 node=node->child[b^1];
             }
             else node=node->child[b];
+        }
+        return res;
+    }
+
+    int queryMin(int x){//查询字典树中的数能和x异或结果的最小值
+        if(root->cnt==0) return -1;
+        Node *node=root;
+        int res=0;
+        for(int i=H;i>=0;i--){
+            int b=(x>>i)&1;
+            if(node->child[b]&&node->child[b]->cnt){
+                node=node->child[b];
+            }
+            else{
+                res|=(1LL<<i);
+                node=node->child[b^1];
+            }
         }
         return res;
     }
