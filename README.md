@@ -26,6 +26,7 @@
 - [SPFA-判负环/求单源最短路](./src/图论/SPFA判负环与单源最短路.cpp)
 - [Kruskal算法求解生成树](./src/图论/Kruskal算法求解生成树.cpp)
 - [Prim算法求解生成树](./src/图论/Prim算法求解生成树.cpp)
+- [Borůvka算法求解生成树](./src/图论/Boruvka算法求解生成树.cpp)
 - [LCA-倍增法](./src/图论/LCA-倍增法.cpp)
 - [LCA-RMQ在线法](./src/图论/LCA-RMQ在线法.cpp)
 - [LCA-Tarjan离线法](./src/图论/LCA-Tarjan离线法.cpp)
