@@ -65,7 +65,7 @@ struct XOR_Basis{//线性基,用最少的数字表示异或空间
                 x^=d[i];
             }
         }
-        return true;
+        return true;;
     }
 
     void rebuild(){//重构线性基以便K-th异或查询
@@ -111,6 +111,22 @@ struct XOR_Basis{//线性基,用最少的数字表示异或空间
         int res=0;
         for(int i=0;i<cnt;i++){
             if((k>>i)&1) res^=d[i];
+        }
+        return res;
+    }
+
+    int queryMaxWith(int x){//查询x与线性基可表示值异或后的最大值
+        int res=x;
+        for(int i=d.size()-1;i>=0;i--){
+            res=max(res,res^d[i]);
+        }
+        return res;
+    }
+
+    int queryMinWith(int x){//查询x与线性基可表示值异或后的最小值
+        int res=x;
+        for(int i=d.size()-1;i>=0;i--){
+            res=min(res,res^d[i]);
         }
         return res;
     }
