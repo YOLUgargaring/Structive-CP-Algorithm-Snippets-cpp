@@ -8,6 +8,7 @@ using namespace std;
     模板原题: 此源代码的solve()解决的是洛谷P3804
     1.子串的出现次数统计: 洛谷P3804 Link: https://www.luogu.com.cn/problem/P3804
     2.本质不同子串个数在线查询: 洛谷P4070 Link: https://www.luogu.com.cn/problem/P4070
+    3.求解两个字符串的最长公共子串LCS: SPOJ1811 Link: https://vjudge.net/problem/SPOJ-LCS#author=main
 */
 struct SAM{//后缀自动机
     struct node{//状态节点
@@ -20,6 +21,7 @@ struct SAM{//后缀自动机
     int maxn;//最大状态数
     int siz;//当前状态数
     int last;//上一个处理的状态
+    int differentSub;//当前字符串的本质不同子串个数
 
     SAM(){}
 
@@ -37,6 +39,7 @@ struct SAM{//后缀自动机
         state[0].link=-1;
         siz=1;
         last=0;
+        differentSub=0;
     }
 
     int extend(char c){//在字符串末尾新增一个字符更新SAM,并返回当前的最后一个状态
@@ -65,6 +68,8 @@ struct SAM{//后缀自动机
         }
         last=cur;
         cnt[last]++;
+        //SAM中的一个状态v对本质不同子串个数的贡献为len[v]-len[link[v]]
+        differentSub+=state[last].len-state[state[last].link].len;
         return cur;
     }
 
@@ -72,10 +77,41 @@ struct SAM{//后缀自动机
         vector<int>ord(siz);
         iota(ord.begin(),ord.end(),0);
         sort(ord.begin(),ord.end(),[&](int x,int y){return state[x].len<state[y].len;});
-        ranges::reverse(ord);
+        reverse(ord.begin(),ord.end());
         for(int v:ord){
             if(state[v].link!=-1) cnt[state[v].link]+=cnt[v];
         }
+    }
+
+    int querySubNum(){//查询当前本质不同子串的个数
+        return differentSub;
+    }
+
+    static pair<string,int> queryLCS(const string &s,const string &t){
+        SAM sam(s);
+        int lenLCS=0;
+        int endpos=0;
+        int v=0,l=0;
+        for(int i=0;i<t.size();i++){
+            char c=t[i];
+            while(v!=-1&&!sam.state[v].nxt.count(c)){
+                v=sam.state[v].link;
+                l=sam.state[v].len;
+            }
+            if(v==-1){
+                v=0;
+                l=0;
+                continue;
+            }
+            v=sam.state[v].nxt[c];
+            l++;
+            if(l>lenLCS){
+                lenLCS=l;
+                endpos=i;
+            }
+        }
+        string LCS=t.substr(endpos-lenLCS+1,lenLCS);
+        return {LCS,lenLCS};
     }
 };
 
