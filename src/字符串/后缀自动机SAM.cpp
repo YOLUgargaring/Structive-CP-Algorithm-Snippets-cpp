@@ -10,6 +10,8 @@ using namespace std;
     2.本质不同子串个数在线查询: 洛谷P4070 Link: https://www.luogu.com.cn/problem/P4070
     3.求解两个字符串的最长公共子串LCS: SPOJ1811 Link: https://vjudge.net/problem/SPOJ-LCS#author=main
     4.求解多个字符串的共同最长公共子串LCS: SPOJ1812 Link: https://vjudge.net/problem/SPOJ-LCS2#author=main
+    5.查询字典序第K小子串-分位置不同和本质不同两种情况: 洛谷P3975 Link: https://www.luogu.com.cn/problem/P3975
+    6.多次查询字典序第K小子串-本质不同情况: SPOJ7258 Link: https://vjudge.net/problem/SPOJ-SUBLEX#author=main
 */
 struct SAM{//后缀自动机
     struct node{//状态节点
@@ -19,10 +21,16 @@ struct SAM{//后缀自动机
     };
     vector<node>state;//状态节点池
     vector<int>cnt;//当前状态里所有子串的出现次数(一个状态的子串出现次数都相同)
+    vector<int>ord;//状态序列,通常按len[v]降序排列
+    vector<int>dp;//查询本质不同第K小子串所用DP
+    vector<int>dpL;//查询位置不同第K小子串所用DP
     int maxn;//最大状态数
     int siz;//当前状态数
     int last;//上一个处理的状态
     int differentSub;//当前字符串的本质不同子串个数
+    bool ordBuilt;
+    bool cntBuilt;
+    bool dpBuilt;
 
     SAM(){}
 
@@ -41,6 +49,9 @@ struct SAM{//后缀自动机
         siz=1;
         last=0;
         differentSub=0;
+        ordBuilt=false;
+        cntBuilt=false;
+        dpBuilt=false;
     }
 
     int extend(char c){//在字符串末尾新增一个字符更新SAM,并返回当前的最后一个状态
@@ -74,14 +85,44 @@ struct SAM{//后缀自动机
         return cur;
     }
 
-    void buildCnt(){//统计每个状态子串出现次数
-        vector<int>ord(siz);
+    void buildOrd(){//构造按len降序排列的状态序列
+        if(ordBuilt) return;
+        ord.assign(siz,0);
         iota(ord.begin(),ord.end(),0);
         sort(ord.begin(),ord.end(),[&](int x,int y){return state[x].len<state[y].len;});
         reverse(ord.begin(),ord.end());
+        ordBuilt=true;
+    }
+
+    //字符串末尾新增字符后状态更新,再次调用buildOrd,buildCnt,buildDP需要重置ord,cnt,dp
+    void ordReset(){
+        ordBuilt=false;
+        cntBuilt=false;
+        dpBuilt=false;
+    }
+
+    void buildCnt(){//统计每个状态子串出现次数
+        if(cntBuilt) return;
+        buildOrd();
         for(int v:ord){
             if(state[v].link!=-1) cnt[state[v].link]+=cnt[v];
         }
+        cntBuilt=true;
+    }
+
+    void buildDP(){
+        if(dpBuilt) return;
+        buildOrd();
+        dp.assign(siz+1,0);
+        dpL.assign(siz+1,0);
+        buildCnt();
+        for(int v:ord){
+            dp[v]=(v==0)?0:1;
+            dpL[v]=(v==0)?0:cnt[v];
+            for(const auto&[c,u]:state[v].nxt) dp[v]+=dp[u];
+            for(const auto&[c,u]:state[v].nxt) dpL[v]+=dpL[u];
+        }
+        dpBuilt=true;
     }
 
     int querySubNum(){//查询当前本质不同子串的个数
@@ -96,6 +137,57 @@ struct SAM{//后缀自动机
             v=state[v].nxt[c];
         }
         return cnt[v];
+    }
+
+    //查询字符串的第K小子串: type=0 查询本质不同第K小;type=1 查询位置不同第K小
+    string queryKthSub(int k,int type){
+        string res="";
+        buildDP();
+        if(type==0){
+            if(dp[0]<k) return "-1";
+            int v=0;
+            while(1){
+                int wv=(v==0)?0:1;
+                if(k<=wv) return res;
+                k-=wv;
+                bool found=false;
+                for(const auto&[c,u]:state[v].nxt){
+                    if(k>dp[u]) k-=dp[u];
+                    else{
+                        res+=c;
+                        v=u;
+                        found=true;
+                        break;
+                    }
+                }
+                if(!found) return "-1";
+            }
+        }
+        else if(type==1){
+            if(dpL[0]<k) return "-1";
+            int v=0;
+            while(1){
+                int wv=(v==0)?0:cnt[v];
+                if(k<=wv) return res;
+                k-=wv;
+                bool found=false;
+                for(const auto&[c,u]:state[v].nxt){
+                    if(k>dpL[u]) k-=dpL[u];
+                    else{
+                        res+=c;
+                        v=u;
+                        found=true;
+                        break;
+                    }
+                }
+                if(!found) return "-1";
+            }
+        }
+        else{
+            cerr<<"Query Type Error!"<<endl;
+            exit(0);
+        }
+        return "-1";
     }
 
     //对外接口: 查询两个字符串的最长公共子串LCS
@@ -141,9 +233,7 @@ struct SAM{//后缀自动机
             }
         }
         SAM sam(base);
-        vector<int>ord(sam.siz);
-        iota(ord.begin(),ord.end(),0);
-        sort(ord.begin(),ord.end(),[&](int x,int y){return sam.state[x].len>sam.state[y].len;});
+        sam.buildOrd();
         vector<int>best(sam.siz+1);
         vector<int>LCSlen(sam.siz+1);
         for(int v=1;v<=sam.siz;v++) LCSlen[v]=sam.state[v].len;
@@ -167,7 +257,7 @@ struct SAM{//后缀自动机
                 l++;
                 best[v]=max(best[v],l);
             }
-            for(int v:ord){
+            for(int v:sam.ord){
                 int p=sam.state[v].link;
                 if(p!=-1) best[p]=max(best[p],min(best[v],sam.state[p].len));
             }
