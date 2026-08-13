@@ -9,6 +9,7 @@ using namespace std;
     1.子串的出现次数统计: 洛谷P3804 Link: https://www.luogu.com.cn/problem/P3804
     2.本质不同子串个数在线查询: 洛谷P4070 Link: https://www.luogu.com.cn/problem/P4070
     3.求解两个字符串的最长公共子串LCS: SPOJ1811 Link: https://vjudge.net/problem/SPOJ-LCS#author=main
+    4.求解多个字符串的共同最长公共子串LCS: SPOJ1812 Link: https://vjudge.net/problem/SPOJ-LCS2#author=main
 */
 struct SAM{//后缀自动机
     struct node{//状态节点
@@ -87,6 +88,18 @@ struct SAM{//后缀自动机
         return differentSub;
     }
 
+    int queryOCC(string t){//查询模式串t在主串s中的出现次数
+        int v=0;
+        for(char c:t){
+            if(!state[v].nxt.count(c))
+                return 0;
+            v=state[v].nxt[c];
+        }
+        return cnt[v];
+    }
+
+    //对外接口: 查询两个字符串的最长公共子串LCS
+    //该接口属于 SAM 类本身,可直接调用 SAM::queryLCS(s,t) 进行LCS查询
     static pair<string,int> queryLCS(const string &s,const string &t){
         SAM sam(s);
         int lenLCS=0;
@@ -112,6 +125,56 @@ struct SAM{//后缀自动机
         }
         string LCS=t.substr(endpos-lenLCS+1,lenLCS);
         return {LCS,lenLCS};
+    }
+
+    //对外接口: 查询多个字符串的共同最长公共子串LCS
+    //该接口属于 SAM 类本身,可直接调用 SAM::queryMultiLCS(str) 进行多串LCS查询
+    static int queryMultiLCS(const vector<string>&str){
+        string base;
+        int minlen=INT_MAX/2;
+        int idx;
+        for(int i=0;i<str.size();i++){
+            if(str[i].size()<minlen){
+                base=str[i];
+                minlen=str[i].size();
+                idx=i;
+            }
+        }
+        SAM sam(base);
+        vector<int>ord(sam.siz);
+        iota(ord.begin(),ord.end(),0);
+        sort(ord.begin(),ord.end(),[&](int x,int y){return sam.state[x].len>sam.state[y].len;});
+        vector<int>best(sam.siz+1);
+        vector<int>LCSlen(sam.siz+1);
+        for(int v=1;v<=sam.siz;v++) LCSlen[v]=sam.state[v].len;
+        for(int i=0;i<str.size();i++){
+            if(i==idx) continue;
+            fill(best.begin(),best.end(),0);
+            string t=str[i];
+            int v=0,l=0;
+            for(int i=0;i<t.size();i++){
+                char c=t[i];
+                while(v!=-1&&!sam.state[v].nxt.count(c)){
+                    v=sam.state[v].link;
+                    if(v!=-1) l=sam.state[v].len;
+                }
+                if(v==-1){
+                    v=0;
+                    l=0;
+                    continue;
+                }
+                v=sam.state[v].nxt[c];
+                l++;
+                best[v]=max(best[v],l);
+            }
+            for(int v:ord){
+                int p=sam.state[v].link;
+                if(p!=-1) best[p]=max(best[p],min(best[v],sam.state[p].len));
+            }
+            for(int v=1;v<=sam.siz;v++) LCSlen[v]=min(LCSlen[v],best[v]);
+        }
+        int res=*max_element(LCSlen.begin(),LCSlen.end());
+        return res;
     }
 };
 
