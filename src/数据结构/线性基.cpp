@@ -143,7 +143,7 @@ void solve_by_YOLU(){
     XOR_Basis xbs;
     //将序列的所有数插入线性基,线性基会排除一些可以用已有元素异或表示的数
     //直接调用queryMax()即可求出序列中选元素的最大异或和
-    rep1(i,1,n){
+    for(int i=1;i<=n;i++){
         int x;
         cin>>x;
         xbs.insert(x);

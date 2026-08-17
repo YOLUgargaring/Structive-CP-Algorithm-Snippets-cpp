@@ -66,7 +66,7 @@ void solve_by_YOLU(){
     while(m--){
         int op,x,y;
         cin>>op>>x>>y;
-        if(op==1) dsu.unio(x,y);
+        if(op==1) dsu.unite(x,y);
         else (dsu.find(x)==dsu.find(y))?cout<<"Y"<<endl:cout<<"N"<<endl;
     }
 } 
