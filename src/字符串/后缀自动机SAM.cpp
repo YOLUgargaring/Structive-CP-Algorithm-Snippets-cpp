@@ -14,6 +14,9 @@ using namespace std;
     6.多次查询字典序第K小子串-本质不同情况: SPOJ7258 Link: https://vjudge.net/problem/SPOJ-SUBLEX#author=main
     7.字符串拼接式伪广义SAM求三个字符串的公共子串出现位置三元组组合数: CF452E Link: https://codeforces.com/contest/452/problem/E
     8.查询不包含某个字符的本质不同子串个数: ABC452G Link: https://atcoder.jp/contests/abc452/tasks/abc452_g
+    9.求字符串的最小表示(字典序最小的循环同构): 洛谷P1368 Link: https://www.luogu.com.cn/problem/P1368
+    10.后缀链接树及其DFS欧拉序运用辅助求解困难区间子串问题: 洛谷P4770 Link: https://www.luogu.com.cn/problem/P4770
+    注: 上述 2,9 两个题目并不是对真实字符串构建SAM,而是对正整数序列构建,需稍微调整节点和方法的参数类型,但算法思想相同
 */
 struct SAM{//后缀自动机
     struct node{//状态节点
@@ -27,6 +30,8 @@ struct SAM{//后缀自动机
     vector<int>ord;//状态序列,通常按len[v]降序排列
     vector<int>dp;//查询本质不同第K小子串所用DP
     vector<int>dpL;//查询位置不同第K小子串所用DP
+    vector<vector<int>>linkTree;//后缀链接树
+    vector<int>tin,tout;//对后缀链接树DFS得到的欧拉序
     int maxn;//最大状态数
     int siz;//当前状态数
     int last;//上一个处理的状态
@@ -161,6 +166,33 @@ struct SAM{//后缀自动机
             for(const auto&[c,u]:state[v].nxt) dpL[v]+=dpL[u];
         }
         dpBuilt=true;
+    }
+
+    void buildLinkTree(){//构建后缀链接数并DFS得到欧拉序
+        linkTree.assign(siz,{});
+        for(int v=1;v<=siz-1;v++) linkTree[state[v].link].push_back(v);
+        tin.assign(siz,0);
+        tout.assign(siz,0);
+        int timer=0;
+        auto dfs=[&](int v)->void {//求后缀链接树DFS序
+            vector<pair<int,int>>stk;
+            stk.push_back({v,0});
+            tin[v]=++timer;
+            while(!stk.empty()){
+                int u=stk.back().first;
+                int &idx=stk.back().second;
+                if(idx<linkTree[u].size()){
+                    int son=linkTree[u][idx++];
+                    tin[son]=++timer;
+                    stk.push_back({son,0});
+                }
+                else{
+                    tout[u]=timer;
+                    stk.pop_back();
+                }
+            }
+        };
+        dfs(0);
     }
 
     int querySubNum(){//查询当前本质不同子串的个数
@@ -330,6 +362,31 @@ struct SAM{//后缀自动机
         }
         SAM sam(s);
         string res=sam.queryKthSub(k,type);
+        return res;
+    }
+
+    //对外接口: 查询字符串的最小表示,即 字典序最小的循环同构
+    //该接口属于 SAM 类本身,可直接调用 SAM::queryMinRepresent(s) 进行s的最小表示查询
+    static string queryMinRepresent(const string &s){
+        string t=s+s;
+        SAM sam(t);
+        sam.buildOrd();
+        vector<int>pdp(sam.siz);
+        for(int v:sam.ord){
+            for(const auto&[c,u]:sam.state[v].nxt) pdp[v]=max(pdp[v],pdp[u]+1);
+        }
+        string res="";
+        int v=0;
+        for(int i=0;i<s.size();i++){
+            int remain=s.size()-i-1;
+            for(const auto&[c,u]:sam.state[v].nxt){
+                if(pdp[u]>=remain){
+                    res+=c;
+                    v=u;
+                    break;
+                }
+            }
+        }
         return res;
     }
 };
