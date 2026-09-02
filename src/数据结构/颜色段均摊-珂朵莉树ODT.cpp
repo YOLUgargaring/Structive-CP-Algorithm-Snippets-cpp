@@ -67,15 +67,46 @@ public:
         t=limit;
     }
 
+    void mergeLR(int l,int r){//合并左右边界的左侧区间以达成临时切分后合并
+        auto left=st.lower_bound(Node(l,0,0));
+        if(left!=st.begin()){
+            auto pre=prev(left);
+            if(pre->r+1==left->l&&pre->v==left->v){
+                int nl=pre->l;
+                int nr=left->r;
+                int v=left->v;
+                st.erase(pre);
+                st.erase(left);
+                st.insert(Node(nl,nr,v)).first;
+            }
+        }
+        if(r<n){
+            auto right=st.lower_bound(Node(r+1,0,0));
+            if(right!=st.begin()){
+                auto pre=prev(right);
+                if(pre->r+1==right->l&&pre->v==right->v){
+                    int nl=pre->l;
+                    int nr=right->r;
+                    int v=right->v;
+                    st.erase(pre);
+                    st.erase(right);
+                    st.insert(Node(nl,nr,v));
+                }
+            }
+        }
+    }
+
     void RangeAssign(int l,int r,int v){//区间[l,r]全赋值v
         auto itr=split(r+1),itl=split(l);//切分边界
         st.erase(itl,itr);//删除旧颜色段区间
-        st.insert(Node(l,r,v));//插入新区间
+        auto it=st.insert(Node(l,r,v));//插入新区间
+        mergeLR(l,r);
     }
 
     void RangeAdd(int l,int r,int v){//区间[l,r]全加v
         auto itr=split(r+1),itl=split(l);//切分边界
         for(auto it=itl;it!=itr;it++) it->v+=v;//遍历区间,加上v
+        mergeLR(l,r);
     }
 
     int queryKth(int l,int r,int k){//查询区间[l,r]第k小值
@@ -88,6 +119,7 @@ public:
             k-=cnt;//否则减去当前值的出现次数,继续寻找
         }
         return -1;//如果k大于区间内的总元素个数,返回-1表示不存在
+        mergeLR(l,r);
     }
 
     static int qpow(int a,int b, int p){//带模快速幂计算a^b mod p
@@ -115,6 +147,7 @@ public:
             sum=(sum+len*it->v);//累加区间和
             if(p!=-1) sum%=p;//取模
         }
+        mergeLR(l,r);
         return sum;
     }
 
@@ -125,6 +158,7 @@ public:
             int len=it->r-it->l+1;
             sum=(sum+len*qpow(it->v,x,p))%p;//累加区间x次幂和,并取模
         }
+        mergeLR(l,r);
         return sum;
     }
 
@@ -133,8 +167,9 @@ public:
         bitset<60>bs;//使用位集记录不同值
         for(auto it=itl;it!=itr;it++){
             bs.set(it->v);
-            if(bs.count()==t) return t;
+            if(bs.count()==t) break;
         }
+        mergeLR(l,r);
         return bs.count();//返回不同值个数
     }
 
@@ -145,7 +180,10 @@ public:
         for(auto it=itl;it!=itr;it++){
             if(it->v==v) cnt+=it->r-it->l+1;//累加值为v的区间长度
         }
-        if(w==-1) return cnt;
+        if(w==-1){
+            mergeLR(l,r);
+            return cnt;
+        }
         st.erase(itl,itr);//删除旧颜色段区间
         st.insert(Node(l,r,w));//插入新区间
         return cnt;
