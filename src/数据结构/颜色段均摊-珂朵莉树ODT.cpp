@@ -15,34 +15,52 @@ private:
     struct Node{//区间节点,相同值的区间视为一个节点
         int l,r;//区间边界
         mutable int v;//区间内的值,可变
+        Node(int l,int r=-1,int v=0){
+            this->l=l;
+            this->r=r;
+            this->v=v;
+        }
         bool operator<(const Node&o)const{return l<o.l;}
     };
     int n;//区间总长度
     int t=-1;//不同值个数上限
     set<Node>st;//节点池
 
+public:
     //区间分裂:将pos所在的区间[l,r]分裂为两个区间[l,pos)和[pos,r],返回右侧区间的迭代器
     set<Node>::iterator split(int pos){
         if(pos>n) return st.end();
-        auto it=st.lower_bound({pos,0,0});
+        auto it=st.lower_bound(Node(pos,0,0));
         if(it!=st.end()&&it->l==pos) return it;
         --it;
         int l=it->l,r=it->r,v=it->v;
         st.erase(it);
-        st.insert({l,pos-1,v});
-        return st.insert({pos,r,v}).first;//返回右侧区间的迭代器,即右侧区间左端点
+        st.insert(Node(l,pos-1,v));
+        return st.insert(Node(pos,r,v)).first;//返回右侧区间的迭代器,即右侧区间左端点
     }
 
-public:
+    set<Node>::iterator getNode(int pos){//获取pos所在的区间节点
+        auto it=st.lower_bound(Node(pos,0,0));
+        if(it!=st.end()&&it->l==pos) return it;
+        --it;
+        return it;
+    }
+
     void build(const vector<int>&a){//对1-based原数组a构建初始珂朵莉树
         n=a.size()-1;
         int left=1;
         for(int i=1;i<=n;i++){
             if(i==n||a[i]!=a[i+1]){
-                st.insert({left,i,a[i]});
+                st.insert(Node(left,i,a[i]));
                 left=i+1;
             }
         }
+    }
+
+    void init(int n,int v){//对长度为n的区间初始化为值v
+        this->n=n;
+        st.clear();
+        st.insert(Node(1,n,v));
     }
 
     void setDifferentLimit(int limit){//设置不同值个数上限,用于优化queryDifferent
@@ -52,7 +70,7 @@ public:
     void RangeAssign(int l,int r,int v){//区间[l,r]全赋值v
         auto itr=split(r+1),itl=split(l);//切分边界
         st.erase(itl,itr);//删除旧颜色段区间
-        st.insert({l,r,v});//插入新区间
+        st.insert(Node(l,r,v));//插入新区间
     }
 
     void RangeAdd(int l,int r,int v){//区间[l,r]全加v
@@ -89,12 +107,13 @@ public:
         return res;
     }
 
-    int querySum(int l,int r,int p){//查询区间[l,r]的和 mod p
+    int querySum(int l,int r,int p){//查询区间[l,r]的和 mod p,p=-1表示不取模
         auto itr=split(r+1),itl=split(l);//切分边界
         int sum=0;
         for(auto it=itl;it!=itr;it++){
             int len=it->r-it->l+1;
-            sum=(sum+len*it->v)%p;//累加区间和,并取模
+            sum=(sum+len*it->v);//累加区间和
+            if(p!=-1) sum%=p;//取模
         }
         return sum;
     }
@@ -119,12 +138,16 @@ public:
         return bs.count();//返回不同值个数
     }
 
-    int queryCount(int l,int r,int v){//查询区间[l,r]中值为v的个数
+    //查询区间[l,r]中值为v的个数并对区间[l,r]进行assign,w为-1则只查询而不进行assign
+    int queryCount(int l,int r,int v,int w){
         auto itr=split(r+1),itl=split(l);//切分边界
         int cnt=0;
         for(auto it=itl;it!=itr;it++){
             if(it->v==v) cnt+=it->r-it->l+1;//累加值为v的区间长度
         }
+        if(w==-1) return cnt;
+        st.erase(itl,itr);//删除旧颜色段区间
+        st.insert(Node(l,r,w));//插入新区间
         return cnt;
     }
 };
