@@ -17,12 +17,13 @@ struct SCC_S{//Tarjan求强连通分量,缩点后将原图重构为DAG
     vector<int>scc;//scc[u]:原图节点u所属的强连通分量编号
     int sccs;//强连通分量总数
     vector<int>sccw;//sccw[i]:第i个强连通分量中所有原节点的点权和
-    vector<vector<int>>ntu;//缩点后的新图,强连通分量作为节点,一定是DAG
+    vector<vector<int>>ntu;//缩点后的新图DAG,强连通分量作为节点
+    vector<vector<int>>sccnd;//sccnd[i]:第i个强连通分量中包含的点
     vector<int>in;//缩点后各节点的入度,用于拓扑排序
     vector<int>dp;//dp[i]:DAG中以第i个SCC结尾的路径最大点权和
 
     SCC_S(int n):n(n),tu(n+1),w(n+1),dfn(n+1),low(n+1),tim(0),inst(n+1,false),
-               scc(n+1),sccs(0),sccw(n+1),ntu(n+1),in(n+1),dp(n+1){}
+               scc(n+1),sccs(0),sccw(n+1),ntu(n+1),sccnd(n+1),in(n+1),dp(n+1){}
 
     void setW(int u,int v){//设置原图节点u的点权为v
         w[u]=v;
@@ -54,6 +55,7 @@ struct SCC_S{//Tarjan求强连通分量,缩点后将原图重构为DAG
                 inst[x]=false;
                 scc[x]=sccs;
                 sccw[sccs]+=w[x];//同一SCC缩成一个点,点权为内部原节点点权和
+                sccnd[sccs].push_back(x);
                 if(x==u) break;
             }
         }
@@ -70,10 +72,9 @@ struct SCC_S{//Tarjan求强连通分量,缩点后将原图重构为DAG
                 }
             }
         }
-        //不同原边可能形成重复的SCC边,保留重复边不影响拓扑排序和DP正确性
     }
 
-    void build(){//对整张图求SCC并完成缩点;调用DAGDP前必须先调用本函数
+    void build(){//对整张图求SCC并完成缩点;调用DAGDP,SCC查询前必须先调用本函数
         for(int i=1;i<=n;i++){
             if(!dfn[i]) Tarjan(i);//原图可能不连通,每个未访问节点都要作为DFS起点
         }
@@ -82,7 +83,7 @@ struct SCC_S{//Tarjan求强连通分量,缩点后将原图重构为DAG
 
     int DAGDP(){//在缩点后的DAG上进行拓扑DP,返回路径点权和最大值
         queue<int>q;
-        vector<int>deg=in;//复制入度,避免拓扑排序破坏成员in,使本函数可以重复调用
+        vector<int>deg=in;
         for(int i=1;i<=sccs;i++){
             dp[i]=sccw[i];//一条路径可以直接从当前SCC开始
             if(deg[i]==0) q.push(i);
@@ -103,6 +104,12 @@ struct SCC_S{//Tarjan求强连通分量,缩点后将原图重构为DAG
 
     int getSCC(int u){//查询原图节点u所属的强连通分量编号,需先调用build()
         return scc[u];
+    }
+
+    vector<vector<int>> getAllSCC(){
+        vector<vector<int>>res;
+        for(int i=1;i<=sccs;i++) res.push_back(sccnd[i]);
+        return res;
     }
 };
 
