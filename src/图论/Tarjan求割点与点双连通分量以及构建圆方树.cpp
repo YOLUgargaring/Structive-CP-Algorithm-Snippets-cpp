@@ -9,9 +9,11 @@ using namespace std;
     1.求割点模板题: 洛谷P3388 Link: https://www.luogu.com.cn/problem/P3388
     2.求点双连通分量模板题: 洛谷P8435 Link: https://www.luogu.com.cn/problem/P8435
     3.点双连通分量之间的结构关系,点双与割点的性质: 洛谷P3225 Link :https://www.luogu.com.cn/problem/P3225
+    4.圆方树构建与性质运用+树形DP求解图中满足存在经过中转点的简单路径的点三元组数量:
+        洛谷P4630 Link: https://www.luogu.com.cn/problem/P4630
 */
-struct SCC_VBCC{//Tarjan算法求割点与点双连通分量
-    int n,m;//点数/变数
+struct SCC_VBCC{//Tarjan算法求割点/点双连通分量/构建圆方树
+    int n,m;//点数/边数
     int tim;//DFS计时器
     vector<vector<pair<int,int>>>tu;//原无向图tu[u]:{v,id}
     vector<int>dfn;//dfn[u]:节点u第一次被DFS访问的时间戳
@@ -22,6 +24,7 @@ struct SCC_VBCC{//Tarjan算法求割点与点双连通分量
     int vbcnt;//点双连通分量数
     vector<vector<int>>vbccnd;//点双连通分量列表
     vector<int>vis;//分量编号去重,避免同一点反复加入同一点双连通分量
+    vector<vector<int>>rst;//圆方树
 
     SCC_VBCC(int n):n(n),m(0),tim(0),vbcnt(0),cutcnt(0),
                     tu(n+1),dfn(n+1),low(n+1),cut(n+1),vis(n+1){}
@@ -96,8 +99,20 @@ struct SCC_VBCC{//Tarjan算法求割点与点双连通分量
         return res;
     }
 
-    vector<vector<int>> getAllVBCC(){//查询点双连通分量,需先调用build()
+    vector<vector<int>> getAllVBCC(){//返回所有点双连通分量,需先调用build()
         return vbccnd;
+    }
+
+    void buildRST(){//构建原图的圆方树,需先调用build()
+        rst.assign(n+vbcnt+1,{});
+        int i=1;
+        for(auto&bcc:vbccnd){
+            for(int u:bcc){
+                rst[n+i].push_back(u);
+                rst[u].push_back(n+i);
+            }
+            i++;
+        }
     }
 };
 
