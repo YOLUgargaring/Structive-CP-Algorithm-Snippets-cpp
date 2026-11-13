@@ -10,6 +10,7 @@ using namespace std;
     2.重链剖分求解最近公共祖先: 洛谷P3379 Link: https://www.luogu.com.cn/problem/P3379
     3.重链剖分+吉司机线段树求解树上路径点权最大值查询与路径点权和查询与单点节点点权更新:
         洛谷P2590 Link: https://www.luogu.com.cn/problem/P2590
+    4.重链剖分+珂朵莉树求解树上路径染色与路径颜色段数查询: 洛谷P2486 Link: https://www.luogu.com.cn/problem/P2486
     注: 为了适配不同线段树模板,此封装重链剖分模板只保留了预处理和LCA查询
         solve()函数中有讲解树上路径和子树问题运用重链剖分得到的dfs序结合线段树的处理框架
 */
